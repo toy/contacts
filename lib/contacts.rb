@@ -227,6 +227,8 @@ private
         contacts[name]
       elsif get.is_a? String
         get % contacts[name]
+      elsif get.is_a? Proc
+        get.call(contacts[name])
       else
         raise "Unknown type of getter for contact type #{name.inspect}: #{set.inspect}"
       end
