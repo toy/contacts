@@ -208,6 +208,12 @@ module Contacts
     }, __FILE__, __LINE__
   end
 
+  def has_contacts?
+    ENTRIES.keys.any? do |contact_name|
+      get_contacts_data(contact_name).present?
+    end
+  end
+
 private
 
   def get_contacts_data(name)
