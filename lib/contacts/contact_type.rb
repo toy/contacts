@@ -1,16 +1,12 @@
 module Contacts
   class ContactType
-    def get(arg = nil, &block)
-      @getter = arg || block
+    attr_reader :cleaner
+    def clean(arg = nil, &block)
+      @cleaner = arg || block
     end
-    def getter
-      @getter
-    end
-    def set(arg = nil, &block)
-      @setter = arg || block
-    end
-    def setter
-      @setter
+    attr_reader :formatter
+    def format(arg = nil, &block)
+      @formatter = arg || block
     end
   end
 

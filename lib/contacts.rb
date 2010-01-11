@@ -1,7 +1,7 @@
 require 'contacts/contact_type'
 module Contacts
   contact :facebook do
-    set do |value|
+    clean do |value|
       username_regexp = '[0-9]{1,25}'
       literal_username_regexp = '[a-zA-Z.]{1,25}'
       regexps = [
@@ -17,7 +17,7 @@ module Contacts
       end
       result
     end
-    get do |value|
+    format do |value|
       m = /^\d+$/.match(value)
       if m
         'http://facebook.com/profile.php?id=%s' % value
@@ -28,7 +28,7 @@ module Contacts
   end
 
   contact :flickr do
-    set do |value|
+    clean do |value|
       username_regexp = '[\\-a-zA-Z0-9_@]{1,50}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?flickr\\.com/(?:photos|people)/(#{username_regexp})"),
@@ -41,11 +41,11 @@ module Contacts
       end
       result
     end
-    get 'http://flickr.com/photos/%s'
+    format 'http://flickr.com/photos/%s'
   end
 
   contact :gtalk do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*'
       if result = value[Regexp.new("^(#{username_regexp})(?:@gmail\\.com)?$"), 1]
         "#{result}@gmail.com" if result && 6..30 === result.length
@@ -53,11 +53,11 @@ module Contacts
         "#{result}" if result
       end
     end
-    get 'gtalk:chat?jid=%s'
+    format 'gtalk:chat?jid=%s'
   end
 
   contact :homepage do
-    set do |value|
+    clean do |value|
       unless value.blank?
         url = URI.parse(value) rescue nil
         unless url.blank?
@@ -71,12 +71,12 @@ module Contacts
   end
 
   contact :icq do
-    set /^\d+$/
-    get 'http://icq.com/%s'
+    clean /^\d+$/
+    format 'http://icq.com/%s'
   end
 
   contact :lastfm do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z][_a-zA-Z0-9\\-]{1,20}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?last\\.fm/user/(#{username_regexp})"),
@@ -89,11 +89,11 @@ module Contacts
       end
       result
     end
-    get 'http://last.fm/user/%s'
+    format 'http://last.fm/user/%s'
   end
 
   contact :livejournal do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,20}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:users|community)\\.livejournal\\.com\\/(#{username_regexp})"),
@@ -107,11 +107,11 @@ module Contacts
       end
       result.gsub('_', '-') if result && result != 'www'
     end
-    get 'http://%s.livejournal.com/'
+    format 'http://%s.livejournal.com/'
   end
 
   contact :lookatme do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{3,20}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?lookatme\\.ru/users/(#{username_regexp})"),
@@ -124,11 +124,11 @@ module Contacts
       end
       result
     end
-    get 'http://lookatme.ru/users/%s'
+    format 'http://lookatme.ru/users/%s'
   end
 
   contact :moikrug do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z0-9][a-zA-Z0-9_\\-]{1,20}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(#{username_regexp})\\.moikrug\\.ru"),
@@ -141,11 +141,11 @@ module Contacts
       end
       result.gsub('_', '-') if result && result != 'www'
     end
-    get 'http://%s.moikrug.ru/'
+    format 'http://%s.moikrug.ru/'
   end
 
   contact :myspace do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,25}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?myspace\\.com/(#{username_regexp})"),
@@ -158,21 +158,21 @@ module Contacts
       end
       result
     end
-    get 'http://myspace.com/%s'
+    format 'http://myspace.com/%s'
   end
 
   contact :phone do
-    set /.+/
-    get 'callto://%s/'
+    clean /.+/
+    format 'callto://%s/'
   end
 
   contact :skype do
-    set /^[a-z][a-z0-9_,.\-]{5,31}$/i
-    get 'skype:%s?userinfo'
+    clean /^[a-z][a-z0-9_,.\-]{5,31}$/i
+    format 'skype:%s?userinfo'
   end
 
   contact :twitter do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,25}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?twitter\\.com/(#{username_regexp})"),
@@ -185,11 +185,11 @@ module Contacts
       end
       result
     end
-    get 'http://twitter.com/%s'
+    format 'http://twitter.com/%s'
   end
 
   contact :youtube do
-    set do |value|
+    clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,20}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?youtube\\.com/user/(#{username_regexp})"),
@@ -202,11 +202,11 @@ module Contacts
       end
       result
     end
-    get 'http://youtube.com/user/%s'
+    format 'http://youtube.com/user/%s'
   end
 
   contact :vkontakte do
-    set do |value|
+    clean do |value|
       username_regexp = '[0-9]{1,25}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?vkontakte\\.ru/id(#{username_regexp})"),
@@ -219,14 +219,14 @@ module Contacts
       end
       result
     end
-    get 'http://vkontakte.ru/id%s'
+    format 'http://vkontakte.ru/id%s'
   end
 
   contact :wikipedia do
-    set do |value|
+    clean do |value|
       value.gsub("http://", '')
     end
-    get do |value|
+    format do |value|
       "http://#{value}".gsub(/.+\/wiki\//, '')
     end
   end
@@ -234,12 +234,6 @@ module Contacts
   def self.included(base)
     base.send :serialize, :contacts, Hash
     base.send :attr_accessible, *contact_types.keys
-  end
-
-  def has_contacts?
-    contact_types.keys.any? do |contact_name|
-      get_contacts_data(contact_name).present?
-    end
   end
 
 private
@@ -250,15 +244,15 @@ private
 
     if contacts
       value = contacts[name]
-      getter = contact_type.getter
-      if value.blank? || getter.blank?
+      formatter = contact_type.formatter
+      if value.blank? || formatter.blank?
         value
       else
-        case getter
+        case formatter
         when String
-          getter % value
+          formatter % value
         when Proc
-          getter.call(value)
+          formatter.call(value)
         else
           raise "Unknown type of getter for contact type #{name.inspect}: #{get.inspect}"
         end
@@ -274,17 +268,17 @@ private
     self.contacts ||= {}
 
     value = value.strip
-    setter = contact_type.setter
+    cleaner = contact_type.cleaner
 
-    case setter
+    case cleaner
     when Regexp
-      contacts[name] = value[setter]
+      contacts[name] = value[cleaner]
     when Proc
-      contacts[name] = setter.call(value)
+      contacts[name] = cleaner.call(value)
     when nil
       contacts[name] = value
     else
-      raise "Unknown type of setter for contact type #{name.inspect}: #{setter.inspect}"
+      raise "Unknown type of setter for contact type #{name.inspect}: #{cleaner.inspect}"
     end
   end
 end
