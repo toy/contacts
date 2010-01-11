@@ -222,15 +222,6 @@ module Contacts
     format 'http://vkontakte.ru/id%s'
   end
 
-  contact :wikipedia do
-    clean do |value|
-      value.gsub("http://", '')
-    end
-    format do |value|
-      "http://#{value}".gsub(/.+\/wiki\//, '')
-    end
-  end
-
   def self.included(base)
     base.send :serialize, :contacts, Hash
     base.send :attr_accessible, *contact_types.keys
