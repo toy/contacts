@@ -243,9 +243,7 @@ private
     set = options.is_a?(Hash) ? options[:set] : options
 
     self.contacts ||= {}
-    if value.nil?
-      contacts[name] = nil
-    elsif set.is_a? Regexp
+    if set.is_a? Regexp
       contacts[name] = value.strip[set]
     elsif set.is_a? Proc
       contacts[name] = set.call(value.strip)
