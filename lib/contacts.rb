@@ -252,6 +252,5 @@ private
     else
       raise "Unknown type of setter for contact type #{name.inspect}: #{set.inspect}"
     end
-    self[name.to_sym] = contacts[name] # If we have #{name} field in dataqbase, it will store
   end
 end
