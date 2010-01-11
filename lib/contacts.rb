@@ -5,10 +5,10 @@ module Contacts
       username_regexp = '[0-9]{1,25}'
       literal_username_regexp = '[a-zA-Z.]{1,25}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?facebook\\.com/profile.php\\?id=(#{username_regexp})"),
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?facebook\\.com/group.php\\?gid=(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$"),
-        Regexp.new("^(#{literal_username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?facebook\.com/profile.php\?id=(#{username_regexp})}
+        %r{^(?:http://)?(?:www\.)?facebook\.com/group.php\?gid=(#{username_regexp})},
+        %r{^(#{username_regexp})$},
+        %r{^(#{literal_username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -18,11 +18,10 @@ module Contacts
       result
     end
     format do |value|
-      m = /^\d+$/.match(value)
-      if m
-        'http://facebook.com/profile.php?id=%s' % value
+      if value[%r{^\d+$}]
+        "http://facebook.com/profile.php?id=#{value}"
       else
-        'http://facebook.com/' + value
+        "http://facebook.com/#{value}"
       end
     end
   end
@@ -31,8 +30,8 @@ module Contacts
     clean do |value|
       username_regexp = '[\\-a-zA-Z0-9_@]{1,50}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?flickr\\.com/(?:photos|people)/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?flickr\.com/(?:photos|people)/(#{username_regexp})},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -47,9 +46,9 @@ module Contacts
   contact :gtalk do
     clean do |value|
       username_regexp = '[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*'
-      if result = value[Regexp.new("^(#{username_regexp})(?:@gmail\\.com)?$"), 1]
+      if result = value[%r{^(#{username_regexp})(?:@gmail\.com)?$}, 1]
         "#{result}@gmail.com" if result && 6..30 === result.length
-      elsif result = value[Regexp.new("^#{username_regexp}@[a-z0-9]+(\\.[a-z0-9]+)+$")]
+      elsif result = value[%r{^#{username_regexp}@[a-z0-9]+(\.[a-z0-9]+)+$}]
         "#{result}" if result
       end
     end
@@ -71,7 +70,7 @@ module Contacts
   end
 
   contact :icq do
-    clean /^\d+$/
+    clean %r{^\d+$}
     format 'http://icq.com/%s'
   end
 
@@ -79,8 +78,8 @@ module Contacts
     clean do |value|
       username_regexp = '[a-zA-Z][_a-zA-Z0-9\\-]{1,20}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?last\\.fm/user/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?last\.fm/user/(#{username_regexp})},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -96,9 +95,9 @@ module Contacts
     clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,20}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:users|community)\\.livejournal\\.com\\/(#{username_regexp})"),
-        Regexp.new("^(?:http:\\/\\/)?(#{username_regexp})\\.livejournal\\.com"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:users|community)\.livejournal\.com/(#{username_regexp})},
+        %r{^(?:http://)?(#{username_regexp})\.livejournal\.com},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -114,8 +113,8 @@ module Contacts
     clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{3,20}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?lookatme\\.ru/users/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?lookatme\.ru/users/(#{username_regexp})},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -131,8 +130,8 @@ module Contacts
     clean do |value|
       username_regexp = '[a-zA-Z0-9][a-zA-Z0-9_\\-]{1,20}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(#{username_regexp})\\.moikrug\\.ru"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(#{username_regexp})\.moikrug\.ru},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -148,8 +147,8 @@ module Contacts
     clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,25}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?myspace\\.com/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?myspace\.com/(#{username_regexp})},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -162,12 +161,12 @@ module Contacts
   end
 
   contact :phone do
-    clean /.+/
+    clean %r{.+}
     format 'callto://%s/'
   end
 
   contact :skype do
-    clean /^[a-z][a-z0-9_,.\-]{5,31}$/i
+    clean %r{^[a-z][a-z0-9_,.\-]{5,31}$}i
     format 'skype:%s?userinfo'
   end
 
@@ -175,8 +174,8 @@ module Contacts
     clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,25}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?twitter\\.com/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?twitter\.com/(#{username_regexp})},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -192,8 +191,8 @@ module Contacts
     clean do |value|
       username_regexp = '[a-zA-Z0-9_\\-]{1,20}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?youtube\\.com/user/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?youtube\.com/user/(#{username_regexp})},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
@@ -209,8 +208,8 @@ module Contacts
     clean do |value|
       username_regexp = '[0-9]{1,25}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?vkontakte\\.ru/id(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
+        %r{^(?:http://)?(?:www\.)?vkontakte\.ru/id(#{username_regexp})},
+        %r{^(#{username_regexp})$}
       ]
       result = nil
       regexps.each do |regexp|
