@@ -1,0 +1,22 @@
+= Contacts
+Store multiple contacts in serialized data column
+
+== Usage
+Create in your model text column data
+
+  create_table <table_name> do |t|
+    t.text :contacts
+  end
+
+or
+
+  change_table <table_name> do |t|
+    t.text :contacts
+  end
+
+== Examples
+  class User < ActiveRecord::Base
+    include Contacts
+  end
+
+  Person.create(:icq => '123456789', :skype => 'hello') # gives us error message as phone must be present :)
