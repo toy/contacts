@@ -230,7 +230,7 @@ private
       elsif get.is_a? Proc
         get.call(contacts[name])
       else
-        raise "Unknown type of getter for contact type #{name.inspect}: #{set.inspect}"
+        raise "Unknown type of getter for contact type #{name.inspect}: #{get.inspect}"
       end
     end
   end
