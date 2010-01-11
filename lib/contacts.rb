@@ -34,6 +34,20 @@ module Contacts
       result.gsub('_', '-') if result && result != 'www'
     end, :get => 'http://%s.livejournal.com/'},
 
+    :twitter => {:set => proc do |value|
+      username_regexp = '[a-z0-9_\\-]{3,20}'
+      regexps = [
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?twitter\\.com/(#{username_regexp})"),
+        Regexp.new("^(#{username_regexp})$")
+      ]
+      result = nil
+      regexps.each do |regexp|
+        result = value[regexp, 1]
+        break if result
+      end
+      result
+    end, :get => 'http://twitter.com/%s'},
+
     :lookatme => {:set => proc do |value|
       username_regexp = '[a-z0-9_\\-]{3,20}'
       regexps = [
