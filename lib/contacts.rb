@@ -1,12 +1,53 @@
 module Contacts
   ENTRIES = {
-    :name => {:set => /.*/, :get => '%s'},
+    # sort entries please!
+    :facebook => {:set => proc do |value|
+      username_regexp = '[0-9]{1,25}'
+      literal_username_regexp = '[a-zA-Z.]{1,25}'
+      regexps = [
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?facebook\\.com/profile.php\\?id=(#{username_regexp})"),
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?facebook\\.com/group.php\\?gid=(#{username_regexp})"),
+        Regexp.new("^(#{username_regexp})$"),
+        Regexp.new("^(#{literal_username_regexp})$")
+      ]
+      result = nil
+      regexps.each do |regexp|
+        result = value[regexp, 1]
+        break if result
+      end
+      result
+    end, :get => proc do |value|
+      m = /^\d+$/.match(value)
+      if m
+        'http://facebook.com/profile.php?id=%s' % value
+      else
+        'http://facebook.com/' + value
+      end
+    end
+    },
 
-    :about => {:set => /.*/, :get => '%s'},
+    :flickr => {:set => proc do |value|
+      username_regexp = '[\\-a-zA-Z0-9_@]{1,50}'
+      regexps = [
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?flickr\\.com/(?:photos|people)/(#{username_regexp})"),
+        Regexp.new("^(#{username_regexp})$")
+      ]
+      result = nil
+      regexps.each do |regexp|
+        result = value[regexp, 1]
+        break if result
+      end
+      result
+    end, :get => 'http://flickr.com/photos/%s'}
 
-    :icq => {:set => /^\d+$/, :get => 'http://icq.com/%s'},
-
-    :skype => {:set => /^[a-z][a-z0-9_,.\-]{5,31}$/i, :get => 'skype:%s?userinfo'},
+    :gtalk => {:set => proc do |value|
+      username_regexp = '[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*'
+      if result = value[Regexp.new("^(#{username_regexp})(?:@gmail\\.com)?$"), 1]
+        "#{result}@gmail.com" if result && 6..30 === result.length
+      elsif result = value[Regexp.new("^#{username_regexp}@[a-z0-9]+(\\.[a-z0-9]+)+$")]
+        "#{result}" if result
+      end
+    end, :get => 'gtalk:chat?jid=%s'},
 
     :homepage => proc do |value|
       unless value.blank?
@@ -20,50 +61,10 @@ module Contacts
       end
     end,
 
-    :livejournal => {:set => proc do |value|
-      username_regexp = '[a-z0-9][a-z0-9_\\-]{1,14}'
-      regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(#{username_regexp})\\.livejournal\\.com"),
-        Regexp.new("^(#{username_regexp})$")
-      ]
-      result = nil
-      regexps.each do |regexp|
-        result = value[regexp, 1]
-        break if result
-      end
-      result.gsub('_', '-') if result && result != 'www'
-    end, :get => 'http://%s.livejournal.com/'},
-
-    :twitter => {:set => proc do |value|
-      username_regexp = '[a-z0-9_\\-]{3,20}'
-      regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?twitter\\.com/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
-      ]
-      result = nil
-      regexps.each do |regexp|
-        result = value[regexp, 1]
-        break if result
-      end
-      result
-    end, :get => 'http://twitter.com/%s'},
-
-    :lookatme => {:set => proc do |value|
-      username_regexp = '[a-z0-9_\\-]{3,20}'
-      regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?lookatme\\.ru/users/(#{username_regexp})"),
-        Regexp.new("^(#{username_regexp})$")
-      ]
-      result = nil
-      regexps.each do |regexp|
-        result = value[regexp, 1]
-        break if result
-      end
-      result
-    end, :get => 'http://lookatme.ru/users/%s'},
+    :icq => {:set => /^\d+$/, :get => 'http://icq.com/%s'},
 
     :lastfm => {:set => proc do |value|
-      username_regexp = '[a-z][_a-z0-9\\-]{1,14}'
+      username_regexp = '[a-zA-Z][_a-zA-Z0-9\\-]{1,20}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?last\\.fm/user/(#{username_regexp})"),
         Regexp.new("^(#{username_regexp})$")
@@ -76,10 +77,25 @@ module Contacts
       result
     end, :get => 'http://last.fm/user/%s'},
 
-    :youtube => {:set => proc do |value|
-      username_regexp = '[a-z0-9]{1,20}'
+    :livejournal => {:set => proc do |value|
+      username_regexp = '[a-zA-Z0-9_\\-]{1,20}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?youtube\\.com/user/(#{username_regexp})"),
+        Regexp.new("^(?:http:\\/\\/)?(?:users|community)\\.livejournal\\.com\\/(#{username_regexp})"),
+        Regexp.new("^(?:http:\\/\\/)?(#{username_regexp})\\.livejournal\\.com"),
+        Regexp.new("^(#{username_regexp})$")
+      ]
+      result = nil
+      regexps.each do |regexp|
+        result = value[regexp, 1]
+        break if result
+      end
+      result.gsub('_', '-') if result && result != 'www'
+    end, :get => 'http://%s.livejournal.com/'},
+
+    :lookatme => {:set => proc do |value|
+      username_regexp = '[a-zA-Z0-9_\\-]{3,20}'
+      regexps = [
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?lookatme\\.ru/users/(#{username_regexp})"),
         Regexp.new("^(#{username_regexp})$")
       ]
       result = nil
@@ -88,10 +104,24 @@ module Contacts
         break if result
       end
       result
-    end, :get => 'http://youtube.com/user/%s'},
+    end, :get => 'http://lookatme.ru/users/%s'},
+
+    :moikrug => {:set => proc do |value|
+      username_regexp = '[a-zA-Z0-9][a-zA-Z0-9_\\-]{1,20}'
+      regexps = [
+        Regexp.new("^(?:http:\\/\\/)?(#{username_regexp})\\.moikrug\\.ru"),
+        Regexp.new("^(#{username_regexp})$")
+      ]
+      result = nil
+      regexps.each do |regexp|
+        result = value[regexp, 1]
+        break if result
+      end
+      result.gsub('_', '-') if result && result != 'www'
+    end, :get => 'http://%s.moikrug.ru/'},
 
     :myspace => {:set => proc do |value|
-      username_regexp = '[a-z0-9_]{1,25}'
+      username_regexp = '[a-zA-Z0-9_\\-]{1,25}'
       regexps = [
         Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?myspace\\.com/(#{username_regexp})"),
         Regexp.new("^(#{username_regexp})$")
@@ -104,19 +134,14 @@ module Contacts
       result
     end, :get => 'http://myspace.com/%s'},
 
-    :gtalk => {:set => proc do |value|
-      username_regexp = '[a-z0-9]+(\\.[a-z0-9]+)*'
-      if result = value[Regexp.new("^(#{username_regexp})(?:@gmail\\.com)?$"), 1]
-        "#{result}@gmail.com" if result && 6..30 === result.length
-      elsif result = value[Regexp.new("^#{username_regexp}@[a-z0-9]+(\\.[a-z0-9]+)+$")]
-        "#{result}" if result
-      end
-    end, :get => 'gtalk:chat?jid=%s'},
+    :phone => {:set => /.+/, :get => 'callto://%s/'},
 
-    :flickr => {:set => proc do |value|
-      username_regexp = '[a-z][a-z0-9_]{1,25}'
+    :skype => {:set => /^[a-z][a-z0-9_,.\-]{5,31}$/i, :get => 'skype:%s?userinfo'},
+
+    :twitter => {:set => proc do |value|
+      username_regexp = '[a-zA-Z0-9_\\-]{1,25}'
       regexps = [
-        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?flickr\\.com/photos/(#{username_regexp})"),
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?twitter\\.com/(#{username_regexp})"),
         Regexp.new("^(#{username_regexp})$")
       ]
       result = nil
@@ -125,7 +150,43 @@ module Contacts
         break if result
       end
       result
-    end, :get => 'http://flickr.com/photos/%s'}
+    end, :get => 'http://twitter.com/%s'},
+
+    :youtube => {:set => proc do |value|
+      username_regexp = '[a-zA-Z0-9_\\-]{1,20}'
+      regexps = [
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?youtube\\.com/user/(#{username_regexp})"),
+        Regexp.new("^(#{username_regexp})$")
+      ]
+      result = nil
+      regexps.each do |regexp|
+        result = value[regexp, 1]
+        break if result
+      end
+      result
+    end, :get => 'http://youtube.com/user/%s'},
+
+    :vkontakte => {:set => proc do |value|
+      username_regexp = '[0-9]{1,25}'
+      regexps = [
+        Regexp.new("^(?:http:\\/\\/)?(?:www\\.)?vkontakte\\.ru/id(#{username_regexp})"),
+        Regexp.new("^(#{username_regexp})$")
+      ]
+      result = nil
+      regexps.each do |regexp|
+        result = value[regexp, 1]
+        break if result
+      end
+      result
+    end, :get => 'http://vkontakte.ru/id%s'},
+
+    :wikipedia => {
+      :set => proc do |value|
+        value.gsub("http://", '')
+      end, :get => proc do |value|
+        "http://#{value}".gsub(/.+\/wiki\//, '')
+      end
+    },
   }
 
   def self.included(base)
