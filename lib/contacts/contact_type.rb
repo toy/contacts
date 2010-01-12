@@ -116,10 +116,12 @@ private
   end
 
   def contacts_must_be_valid
-    contacts.each do |name, value|
-      if value.present?
-        if contact_type = Contacts.contact_types[name]
-          errors.add(name) unless contact_type.sanitize(value).present?
+    if contacts
+      contacts.each do |name, value|
+        if value.present?
+          if contact_type = Contacts.contact_types[name]
+            errors.add(name) unless contact_type.sanitize(value).present?
+          end
         end
       end
     end
