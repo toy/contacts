@@ -19,4 +19,12 @@ or
     include Contacts
   end
 
-  Person.create(:icq => '123456789', :skype => 'hello') # gives us error message as phone must be present :)
+  p = Person.create(:icq => '123456789', :skype => 'hello', :livejournal => 'http://tema.livejournal.com/')
+  p.icq # '123456789'
+  p.icq_link # 'http://icq.com/123456789'
+  p.skype # 'hello'
+  p.skype_link # 'skype:hello?userinfo'
+  p.livejournal # 'tema'
+  p.livejournal_link # 'http://tema.livejournal.com/'
+
+  Person.create!(:icq => 'abc') # does not create Person and adds error as icq is invalid
