@@ -81,6 +81,9 @@ module Contacts
       def #{name}
         get_contact(#{name.inspect})
       end
+      def #{name}?
+        #{name}.present?
+      end
       def #{name}_link
         format_contact(#{name.inspect})
       end
