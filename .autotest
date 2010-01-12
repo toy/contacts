@@ -1,0 +1,6 @@
+Autotest.add_hook :reset do |at|
+  at.clear_mappings
+  at.add_mapping(%r{^.*\.rb$}) do |filename, m|
+    'spec/contacts_spec.rb'
+  end
+end
