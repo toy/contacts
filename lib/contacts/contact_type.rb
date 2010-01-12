@@ -47,7 +47,7 @@ module Contacts
   end
 
   def self.contact_types
-    @@contact_types ||= {}
+    @contact_types ||= {}
   end
 
   def self.included(base)
@@ -55,10 +55,25 @@ module Contacts
     base.send :validate, :contacts_must_be_valid
   end
 
+  def self.sorted
+    @sorted = ''
+    yield
+  ensure
+    @sorted = nil
+  end
+
   def self.contact(name, &block)
+    name = name.to_sym
+    if @sorted
+      RAILS_DEFAULT_LOGGER.warn "contact type #{name} is out of order" if name.to_s < @sorted
+      @sorted = name.to_s
+    end
     contact_type = ContactType.new
     contact_type.instance_eval(&block) if block
-    contact_types[name.to_sym] = contact_type
+    if contact_types[name]
+      RAILS_DEFAULT_LOGGER.warn "contact type #{name} already defined"
+    end
+    contact_types[name] = contact_type
     class_eval %Q{
       def #{name}=(value)
         set_contact(#{name.inspect}, value)

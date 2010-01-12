@@ -123,4 +123,33 @@ describe Contacts do
       }.should raise_error('Unknown type of formatter: 123')
     end
   end
+
+  describe "sorting and duplicates" do
+    it "should complain about sort order if it is turned on" do
+      RAILS_DEFAULT_LOGGER.should_receive(:warn).with('contact type b is out of order')
+      Contacts.contact_types.replace({})
+      Contacts.sorted do
+        Contacts.contact :a
+        Contacts.contact :c
+        Contacts.contact :b
+      end
+    end
+
+    it "should not complain about sort order if it is not turned on" do
+      RAILS_DEFAULT_LOGGER.should_not_receive(:warn)
+      Contacts.contact_types.replace({})
+      Contacts.contact :a
+      Contacts.contact :c
+      Contacts.contact :b
+    end
+
+    it "should complain about duplicates" do
+      RAILS_DEFAULT_LOGGER.should_receive(:warn).with('contact type a already defined')
+      Contacts.contact_types.replace({})
+      Contacts.contact :a
+      Contacts.contact :b
+      Contacts.contact :a
+    end
+
+  end
 end
