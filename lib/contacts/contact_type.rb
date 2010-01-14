@@ -1,5 +1,9 @@
 module Contacts
   class ContactType
+    def self.unformatted
+      ContactType.new
+    end
+
     def sanitizer(arg = nil, &block)
       @sanitizer = arg || block
     end
@@ -49,29 +53,31 @@ module Contacts
   module ClassMethods
     def has_contacts(*args)
       options = args.extract_options!
+      unless include?(InstanceMethods)
+        include InstanceMethods
+        serialize :contacts, Hash
+        validate :contacts_must_be_valid
+        class_inheritable_reader :contact_type_map
+        write_inheritable_hash(:contact_type_map, {})
+      end
       args = args + Contacts.contact_types.keys if args.delete(:all)
       args.map(&:to_sym).uniq.each do |name|
         name = name.to_sym
-        as = (options[:as] || name).to_sym
+        write_inheritable_hash(:contact_type_map, name => (options[:as] || name).to_sym)
         class_eval %Q{
           def #{name}=(value)
-            set_contact(#{name.inspect}, value, #{{:as => as}.inspect})
+            set_contact(#{name.inspect}, value)
           end
           def #{name}
-            get_contact(#{name.inspect}, #{{:as => as}.inspect})
+            get_contact(#{name.inspect})
           end
           def #{name}_link
-            format_contact(#{name.inspect}, #{{:as => as}.inspect})
+            format_contact(#{name.inspect})
           end
           def #{name}?
             #{name}.present?
           end
         }, __FILE__, __LINE__
-      end
-      unless include?(InstanceMethods)
-        serialize :contacts, Hash
-        validate :contacts_must_be_valid
-        include InstanceMethods
       end
     end
     alias_method :has_contact, :has_contacts
@@ -79,26 +85,35 @@ module Contacts
 
   module InstanceMethods
   private
-    def set_contact(name, value, options = {})
-      contacts_will_change!
-      self.contacts ||= {}
-      if contact_type = Contacts.contact_types[options[:as]]
-        contacts[name] = contact_type.sanitize(value) || value
+    def contact_type_for(name)
+      as = contact_type_map[name]
+      if as == :unformatted
+        ContactType.unformatted
       else
-        raise "Unknown contact type: #{options[:as].inspect}"
+        Contacts.contact_types[as]
       end
     end
 
-    def get_contact(name, options = {})
+    def set_contact(name, value)
+      contacts_will_change!
+      self.contacts ||= {}
+      if contact_type = contact_type_for(name)
+        contacts[name] = contact_type.sanitize(value) || value
+      else
+        raise "Unknown contact: #{name}"
+      end
+    end
+
+    def get_contact(name)
       contacts && contacts[name]
     end
 
-    def format_contact(name, options = {})
-      value = get_contact(name, options)
-      if contact_type = Contacts.contact_types[options[:as]]
+    def format_contact(name)
+      value = get_contact(name)
+      if contact_type = contact_type_for(name)
         contact_type.format(value) if value.present?
       else
-        raise "Unknown contact type: #{options[:as].inspect}"
+        raise "Unknown contact: #{name}"
       end
     end
 
@@ -106,7 +121,7 @@ module Contacts
       if contacts
         contacts.each do |name, value|
           if value.present?
-            if contact_type = Contacts.contact_types[name]
+            if contact_type = contact_type_for(name)
               errors.add(name) unless contact_type.sanitize(value).present?
             end
           end

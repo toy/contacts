@@ -5,9 +5,6 @@ end
 
 class User < ActiveRecord::Base
   has_contacts :icq, :skype, :test
-  has_contacts :test_a, :test_b, :as => :test
-  has_contact :test_c, :as => :test
-  has_contact :test_z
 end
 
 class User2 < User
@@ -32,10 +29,18 @@ describe Contacts do
 
   it "should store test string" do
     Contacts.contact :test
-    User.create(:test => '12345')
-    user = User.first
-    user.test.should == '12345'
+    User.create!(:test => '12345')
+    User.last.test.should == '12345'
   end
+
+  it "should store unformatted contact" do
+    User.class_eval do
+      has_contact :city, :as => :unformatted
+    end
+    User.create!(:city => '12345')
+    User.last.city.should == '12345'
+  end
+
 
   describe "with wrong value" do
     before do
@@ -55,7 +60,7 @@ describe Contacts do
     end
 
     it "should leave value that was set" do
-      User.create(:test => 'abc').test.should == 'abc'
+      User.new(:test => 'abc').test.should == 'abc'
     end
   end
 
@@ -64,16 +69,16 @@ describe Contacts do
       Contacts.contact :test do
         sanitizer %r{[b-e]+}
       end
-      User.create(:test => 'abcdef').test.should == 'bcde'
-      User.create(:test => 'ghijkl').test.should == 'ghijkl'
+      User.new(:test => 'abcdef').test.should == 'bcde'
+      User.new(:test => 'ghijkl').test.should == 'ghijkl'
     end
 
     it "should sanitize using regexp with selector" do
       Contacts.contact :test do
         sanitizer %r{^ab(.*)}
       end
-      User.create(:test => 'abcdef').test.should == 'cdef'
-      User.create(:test => 'ghijkl').test.should == 'ghijkl'
+      User.new(:test => 'abcdef').test.should == 'cdef'
+      User.new(:test => 'ghijkl').test.should == 'ghijkl'
     end
 
     it "should sanitize using block/proc" do
@@ -82,29 +87,29 @@ describe Contacts do
           value.gsub(%r{[b-e]+}, '-')
         end
       end
-      User.create(:test => 'abcdef').test.should == 'a-f'
-      User.create(:test => 'ghijkl').test.should == 'ghijkl'
+      User.new(:test => 'abcdef').test.should == 'a-f'
+      User.new(:test => 'ghijkl').test.should == 'ghijkl'
     end
 
     it "should sanitize using array of regexps" do
       Contacts.contact :test do
         sanitizer [%r{\d+}, %r{[A-Z]+}, %r{[b-e]+}]
       end
-      User.create(:test => 'abcdef').test.should == 'bcde'
-      User.create(:test => 'ghijkl').test.should == 'ghijkl'
+      User.new(:test => 'abcdef').test.should == 'bcde'
+      User.new(:test => 'ghijkl').test.should == 'ghijkl'
     end
 
     it "should sanitize using array of regexps with selector" do
       Contacts.contact :test do
         sanitizer [%r{^\d(.*)}, %r{^[A-Z](.*)}, %r{^[a-f](.*)}]
       end
-      User.create(:test => 'abcdef').test.should == 'bcdef'
-      User.create(:test => 'ghijkl').test.should == 'ghijkl'
+      User.new(:test => 'abcdef').test.should == 'bcdef'
+      User.new(:test => 'ghijkl').test.should == 'ghijkl'
     end
 
     it "should not sanitize if sanitizer is nil" do
       Contacts.contact :test
-      User.create(:test => 'abcdef').test.should == 'abcdef'
+      User.new(:test => 'abcdef').test.should == 'abcdef'
     end
 
     it "should raise for unknown sanitizer" do
@@ -112,7 +117,7 @@ describe Contacts do
         sanitizer 123
       end
       proc{
-        User.create(:test => 'abcdef')
+        User.new(:test => 'abcdef')
       }.should raise_error('Unknown type of sanitizer: 123')
     end
   end
@@ -122,7 +127,7 @@ describe Contacts do
       Contacts.contact :test do
         formatter 'hello %s'
       end
-      User.create(:test => 'abcdef').test_link.should == 'hello abcdef'
+      User.new(:test => 'abcdef').test_link.should == 'hello abcdef'
     end
 
     it "should format using block/proc" do
@@ -131,12 +136,12 @@ describe Contacts do
           value.gsub(/./, '\0\0')
         end
       end
-      User.create(:test => 'abcdef').test_link.should == 'aabbccddeeff'
+      User.new(:test => 'abcdef').test_link.should == 'aabbccddeeff'
     end
 
     it "should leave value as is when formatter is nil" do
       Contacts.contact :test
-      User.create(:test => 'abcdef').test_link.should == 'abcdef'
+      User.new(:test => 'abcdef').test_link.should == 'abcdef'
     end
 
     it "should raise for unknown formatter" do
@@ -144,13 +149,18 @@ describe Contacts do
         formatter 123
       end
       proc{
-        User.create(:test => 'abcdef').test_link
+        User.new(:test => 'abcdef').test_link
       }.should raise_error('Unknown type of formatter: 123')
     end
   end
 
   describe "cloning contacs" do
     it "should get rules for contact with :as => :test from test contact" do
+      User.class_eval do
+        has_contacts :test_a, :test_b, :as => :test
+        has_contact :test_c, :as => :test
+        has_contact :test_z
+      end
       Contacts.contact :test do
         sanitizer %r{[b-e]+}
         formatter 'hello %s'
@@ -160,7 +170,7 @@ describe Contacts do
       Contacts.contact :test_c
       Contacts.contact :test_z
 
-      user = User.create do |u|
+      user = User.new do |u|
         u.test = 'abcdef'
         u.test_a = 'abcdef'
         u.test_b = 'abcdef'
