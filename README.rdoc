@@ -16,7 +16,17 @@ or
 
 == Examples
   class User < ActiveRecord::Base
-    include Contacts
+    has_contacts :icq, :skype
+    has_contacts :phone, :additional_phone, :as => :phone
+    Contacts.contact :index do
+      sanitizer %r{\d+}
+      formatter '#%s'
+    end
+    has_contact :index
+  end
+
+  class User < ActiveRecord::Base
+    has_contacts :all
   end
 
   p = Person.create(:icq => '123456789', :skype => 'hello', :livejournal => 'http://tema.livejournal.com/')
