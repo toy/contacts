@@ -23,6 +23,7 @@ or
       formatter '#%s'
     end
     has_contact :index
+    has_contact :city, :as => :unformatted
   end
 
   class User < ActiveRecord::Base
