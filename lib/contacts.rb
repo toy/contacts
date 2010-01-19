@@ -115,6 +115,11 @@ module Contacts
       formatter 'callto://%s/'
     end
 
+    contact :postal do
+      sanitizer [%r{^\d{5,6}$}]
+      formatter '%s'
+    end
+
     contact :skype do
       sanitizer %r{^[a-z][a-z0-9_,.\-]{5,31}$}i
       formatter 'skype:%s?userinfo'
