@@ -11,6 +11,14 @@ class User2 < User
   has_contacts :all
 end
 
+class User3 < User
+  has_contacts :all, :except => :facebook
+end
+
+class User4 < User
+  has_contacts :all, :except => [:facebook, :flickr]
+end
+
 describe Contacts do
   it "should not auto insert accessors" do
     Post.new.should_not respond_to(:icq, :icq=, :icq?, :icq_link)
@@ -25,6 +33,17 @@ describe Contacts do
     Contacts.contact_types.keys.each do |contact|
       User2.new.should respond_to(:"#{contact}", :"#{contact}=", :"#{contact}?", :"#{contact}_link")
     end
+  end
+
+  it "should skip accessor for contacts listed in :except option" do
+    User.new.should_not respond_to(:facebook, :facebook=, :facebook?, :facebook_link)
+    User.new.should_not respond_to(:flickr, :flickr=, :flickr?, :flickr_link)
+    User2.new.should respond_to(:facebook, :facebook=, :facebook?, :facebook_link)
+    User2.new.should respond_to(:flickr, :flickr=, :flickr?, :flickr_link)
+    User3.new.should_not respond_to(:facebook, :facebook=, :facebook?, :facebook_link)
+    User3.new.should respond_to(:flickr, :flickr=, :flickr?, :flickr_link)
+    User4.new.should_not respond_to(:facebook, :facebook=, :facebook?, :facebook_link)
+    User4.new.should_not respond_to(:flickr, :flickr=, :flickr?, :flickr_link)
   end
 
   it "should store test string" do

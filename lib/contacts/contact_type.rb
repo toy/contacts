@@ -61,7 +61,13 @@ module Contacts
         write_inheritable_hash(:contact_type_map, {})
       end
       args = args + Contacts.contact_types.keys if args.delete(:all)
-      args.map(&:to_sym).uniq.each do |name|
+      names = args.map(&:to_sym)
+      if options[:except]
+        Array(options[:except]).map(&:to_sym).each do |except|
+          names.delete(except)
+        end
+      end
+      names.uniq.each do |name|
         name = name.to_sym
         write_inheritable_hash(:contact_type_map, name => (options[:as] || name).to_sym)
         class_eval %Q{
