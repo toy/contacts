@@ -135,12 +135,21 @@ module Contacts
     end
 
     contact :vkontakte do
-      username_regexp = '[0-9]{1,25}'
+      id_regexp = '[0-9]{1,25}'
+      username_regexp = '[a-zA-Z][a-zA-Z0-9_\.]{4,}'
       sanitizer [
-        %r{^(?:http://)?(?:www\.)?vkontakte\.ru/id(#{username_regexp})},
-        %r{^(#{username_regexp})$}
+        %r{^(?:http://)?(?:www\.)?vkontakte\.ru/id(#{id_regexp})},
+        %r{^(#{id_regexp})$},
+        %r{^(?:http://)?(?:www\.)?vkontakte\.ru/(#{username_regexp})},
+        %r{^(#{username_regexp})$},
       ]
-      formatter 'http://vkontakte.ru/id%s'
+      formatter do |value|
+        if value[/\D/]
+          "http://vkontakte.ru/#{value}"
+        else
+          "http://vkontakte.ru/id#{value}"
+        end
+      end
     end
 
     contact :youtube do
